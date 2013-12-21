@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+const int t = 2;
+
+typedef struct ArvB{
+  int nchaves, folha, *chave;
+  char **filho; // vetor de nomes para arquivos
+}TAB;
+
+
+// seek em 0L: (nchaves) // seek em sizeof(int): (folha) // seek em sizeof(int)*2: vetor de chaves // seek em sizeof(int)*3: vetor dos nomes de arquivos
+// para 0L e sizeof(int): ler 1 elemento // para sizeof(int)*2: ler 2*t-1 elementos // para sizeof(int)*3: ler 2*t elementos
+
+FILE *Cria(char * nome, int t){ // criação de arquivo (criação de um nó)
+  FILE *arq = fopen(nome, "wb");
+  int i;
+  TAB novo;
+  novo.nchaves = 0;
+  novo.folha = 1;
+  novo.chave =(int*) malloc(sizeof(int)*((t*2)-1));
+  
+  for(i = 0; i< 2*t-1;i++){novo.chave[i] = 0;} // inicializando todas as chaves com 0
+  
+  // Vetor dos nomes dos arquivos
+  novo.filho = (char**)malloc(sizeof(char*)*t*2); 
+  for(i=0;i<(2*t);i++){novo.filho[i] = (char*) malloc (sizeof(char)*31);}
+  //
+  
+  for(i=0;i <(2*t);i++) novo.filho[i] = "-1"; // inicializando todos os nomes de arquivo com -1
+  fwrite(&novo, sizeof(TAB), 1, arq);
+  fclose(arq);
+  return arq;
+}
+
+void Imprime(char *nome, int andar){
+  TAB no;
+  FILE *arq = fopen(nome, "rb");
+
+  fseek(arq, 0, SEEK_SET);
+  fread(&no, sizeof(TAB), 1, arq);
+
+  if(arq){
+    int i,j;
+    for(i=0; i<no.nchaves; i++){
+      Imprime(no.filho[i],andar+1);
+      for(j=0; j<andar; j++) printf("   ");
+      printf("%d\n", no.chave[i]);
+    }
+    Imprime(no.filho[i],andar+1);
+  }
+}
