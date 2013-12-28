@@ -9,7 +9,6 @@ typedef struct ArvB{
   char **filho; // vetor de nomes para arquivos
 }TAB;
 
-
 // seek em 0L: (nchaves) // seek em sizeof(int): (folha) // seek em sizeof(int)*2: vetor de chaves // seek em sizeof(int)*3: vetor dos nomes de arquivos
 // para 0L e sizeof(int): ler 1 elemento // para sizeof(int)*2: ler 2*t-1 elementos // para sizeof(int)*3: ler 2*t elementos
 
@@ -69,25 +68,25 @@ FILE *Busca(char* nome, int ch){
 
 char *Divisao(char *x, int i, char *y, int o, int t){
   
-  char *df = (char*) malloc(sizeof(char)*31);
-  sprintf(df, "%d-", o); 
-  strcat(df, y);  
-  o++;
-
-  char *z = Cria(df, t); 
   TAB conteudo_x, conteudo_y, conteudo_z;
-  FILE *arq = NULL;
   
-  arq = fopen(y, "rb");
-  fseek(arq, 0L, SEEK_SET);
-  fread(&conteudo_y, sizeof(TAB), 1, arq);
-  fclose(arq);
-  
-  arq = fopen(x, "rb");
+  FILE *arq = fopen(x, "rb");
   fseek(arq, 0L, SEEK_SET);
   fread(&conteudo_x, sizeof(TAB), 1, arq);
   fclose(arq);
    
+  arq = fopen(y, "rb");
+  fseek(arq, 0L, SEEK_SET);
+  fread(&conteudo_y, sizeof(TAB), 1, arq);
+  fclose(arq);
+ 
+  char *df = (char*) malloc(sizeof(char)*51);
+  o++;
+  sprintf(df, "%d-", o); 
+  strcat(df, y);  
+ 
+  char *z = Cria(df, t); 
+ 
   arq = fopen(z, "rb");
   fseek(arq, 0L, SEEK_SET);
   fread(&conteudo_z, sizeof(TAB), 1, arq);
@@ -127,18 +126,18 @@ char *Divisao(char *x, int i, char *y, int o, int t){
   fseek(arq, 0L, SEEK_SET);
   fwrite(&conteudo_x, sizeof(TAB), 1, arq);
   fclose(arq);
-
+  
   return x;
 }
 
 char *Insere_Nao_Completo(char *nome, int k, int o, int t){ 
   FILE *arq = NULL;
-  TAB x, x_filho;
+  TAB x, x_filho, x_aux;
  
   arq = fopen(nome, "rb");
   fseek(arq, 0L, SEEK_SET);
   fread(&x, sizeof(TAB), 1, arq);
-  
+   
   int i = x.nchaves-1;
   if(x.folha){
     while((i >= 0) && (k < x.chave[i])){
@@ -164,13 +163,19 @@ char *Insere_Nao_Completo(char *nome, int k, int o, int t){
   fread(&x_filho, sizeof(TAB), 1, arq);
   fclose(arq);
   
-  if(x_filho.nchaves == ((2*t)-1)){ // x_filho.nchaves = nchaves do filho (x->filho[i]->nchaves)
+  if(x_filho.nchaves == ((2*t)-1)){ // x_filho.nchaves = nchaves do filho (x->filho[i]->nchaves) 
+    
     nome = Divisao(nome, (i+1), x.filho[i], o, t);
+	
+    arq = fopen(nome, "rb");
+    fseek(arq, 0L, SEEK_SET);
+    fread(&x, sizeof(TAB), 1, arq);
+    fclose(arq);
+		
     if(k > x.chave[i]) i++;
   }
-
-  x.filho[i] = Insere_Nao_Completo(x.filho[i], k, o, t); 
   
+  x.filho[i] = Insere_Nao_Completo(x.filho[i], k, o, t); 
   return nome;
 }
 
@@ -178,9 +183,8 @@ char *Insere(char *nome, int k, int o, int t){
   FILE *T = NULL;
   TAB a; int i = 0;
   char *ind, *end_s = NULL, *end_t = nome;
-  ind = (char*) malloc(sizeof(char)*31);
+  ind = (char*) malloc(sizeof(char)*51);
   if(Busca(end_t,k)) return end_t;
-  
   T = fopen(end_t, "rb");
   if(!T){
     end_t = Cria(end_t, t); 
@@ -201,7 +205,6 @@ char *Insere(char *nome, int k, int o, int t){
   }
   
   fread(&a, sizeof(TAB), 1, T);
-
   if(a.nchaves == (2*t)-1){   
  
 	//criando o nome do novo arquivo
@@ -233,24 +236,29 @@ char *Insere(char *nome, int k, int o, int t){
 }
 
 int main(int argc, char *argv[]){
-  char nome [31] = "no.dat";
-  char *resp = NULL;
+  char *resp = "no.dat";
   int o = 0;
-  resp = Insere(nome, 6, o, t);
+  resp = Insere(resp, 18, o, t);
+  resp = Insere(resp, 29, o, t);
   resp = Insere(resp, 1, o, t);
-  resp = Insere(resp, 15, o, t);
-  resp = Insere(nome, 5, o, t);
   resp = Insere(resp, 2, o, t);
-  resp = Insere(resp, 13, o, t);
-//resp = Insere(resp, 4, o, t); // Se inserir o 4, o nó está completo e precisa ser dividido e subir o do meio para o pai (Não Funciona)
-  resp = Insere(resp, 22, o, t);
-  resp = Insere(resp, 32, o, t);
-  resp = Insere(resp, 14, o, t);
-  resp = Insere(resp, 11, o, t);
+  resp = Insere(resp, 35, o, t);
+  resp = Insere(resp, 6, o, t);
   resp = Insere(resp, 23, o, t);
-  resp = Insere(resp, 33, o, t);
-  resp = Insere(resp, 67, o, t);
-  resp = Insere(resp, 78, o, t);
+  resp = Insere(resp, 14, o, t);
+  resp = Insere(resp, 7, o, t);
+  resp = Insere(resp, 8, o, t);
+  resp = Insere(resp, 5, o, t);
+  resp = Insere(resp, 11, o, t);
+  resp = Insere(resp, 15, o, t);
+  resp = Insere(resp, 50, o, t);
+  resp = Insere(resp, 25, o, t);
+  resp = Insere(resp, 17, o, t);
+  resp = Insere(resp, 71, o, t);
+  resp = Insere(resp, 10, o, t);
+  resp = Insere(resp, 13, o, t);
+  resp = Insere(resp, 21, o, t);
+//  resp = Insere(resp, 22, o, t);
   Imprime(resp, t); 
   system("PAUSE");
   return 0;
